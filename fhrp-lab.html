@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - FHRP Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>FHRP Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of First Hop Redundancy Protocol (FHRP) using Hot Standby Router Protocol (HSRP), which provides gateway redundancy by allowing multiple routers to share a virtual IP address. The setup features two routers (Router0 and Router1) providing redundant gateways for two VLANs, with OSPF for dynamic routing and an external router (Router2) simulating an ISP. Two switches connect the VLANs, and four PCs test connectivity and failover.</p>
+      <p><strong>What is HSRP?</strong> HSRP allows multiple routers to act as a single virtual router, ensuring high availability for hosts. One router is active, handling traffic, while the other is on standby, ready to take over if the active router fails.</p>
+      <p>The lab uses HSRP to assign virtual IPs as default gateways (192.168.10.1 for VLAN 10, 192.168.20.1 for VLAN 20), with Router0 active for VLAN 10 and Router1 active for VLAN 20. OSPF is configured with a reference bandwidth of 10,000 Mbps to prioritize faster links, and Router2 advertises a default route for external connectivity.</p>
+      <p>Key objectives include verifying HSRP failover, inter-VLAN routing, and external connectivity to Router2’s network (203.0.113.0/24).</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router0, Router1, Router2 - Cisco 2911.</li>
+            <li>Switch0, Switch1 - Cisco 2950.</li>
+            <li>PC0, PC1 (connected to Switch0), PC2, PC3 (connected to Switch1).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Router0 G0/0 to Switch0 F0/1 (VLAN 10).</li>
+            <li>Router0 G0/1 to Switch1 F0/1 (VLAN 20).</li>
+            <li>Router1 G0/0 to Switch0 F0/2 (VLAN 10).</li>
+            <li>Router1 G0/1 to Switch1 F0/2 (VLAN 20).</li>
+            <li>Router0 G0/2 to Router1 G0/2 (inter-router link).</li>
+            <li>Router0 S0/0/0 to Router2 S0/0/0 (external link).</li>
+            <li>Router1 S0/0/0 to Router2 S0/0/1 (external link).</li>
+            <li>Switch0 F0/3 to PC0, F0/4 to PC1 (VLAN 10).</li>
+            <li>Switch1 F0/3 to PC2, F0/4 to PC3 (VLAN 20).</li>
+            <li>Switch0 F0/5 to Switch1 F0/5 (trunk link).</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10: 192.168.10.0/24 (Virtual IP: 192.168.10.1, Router0 G0/0: 192.168.10.2, Router1 G0/0: 192.168.10.3).</li>
+            <li>VLAN 20: 192.168.20.0/24 (Virtual IP: 192.168.20.1, Router0 G0/1: 192.168.20.2, Router1 G0/1: 192.168.20.3).</li>
+            <li>Router0 G0/2 to Router1 G0/2: 192.168.100.0/30 (Router0: 192.168.100.1, Router1: 192.168.100.2).</li>
+            <li>Router0 S0/0/0 to Router2 S0/0/0: 192.168.0.0/30 (Router0: 192.168.0.1, Router2: 192.168.0.2).</li>
+            <li>Router1 S0/0/0 to Router2 S0/0/1: 192.168.0.4/30 (Router1: 192.168.0.5, Router2: 192.168.0.6).</li>
+            <li>Router2 Loopback0: 203.0.113.0/24 (Router2: 203.0.113.1).</li>
+            <li>PC0: 192.168.10.10, PC1: 192.168.10.11 (Gateway: 192.168.10.1).</li>
+            <li>PC2: 192.168.20.10, PC3: 192.168.20.11 (Gateway: 192.168.20.1).</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/fhrp-topology.png" alt="FHRP Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+        <h3>Configurations</h3>
+        <h4>Router0</h4>
+        <pre>
+      interface G0/0
+       ip address 192.168.10.2 255.255.255.0
+       standby 1 ip 192.168.10.1
+       standby 1 priority 110
+       standby 1 preempt
+       no shutdown
+      exit
+      interface G0/1
+       ip address 192.168.20.2 255.255.255.0
+       standby 2 ip 192.168.20.1
+       standby 2 priority 90
+       no shutdown
+      exit
+      interface G0/2
+       ip address 192.168.100.1 255.255.255.252
+       no shutdown
+      exit
+      interface S0/0/0
+       ip address 192.168.0.1 255.255.255.252
+       no shutdown
+      exit
+      router ospf 1
+       auto-cost reference-bandwidth 10000
+       passive-interface G0/0
+       passive-interface G0/1
+       network 192.168.10.0 0.0.0.255 area 0
+       network 192.168.20.0 0.0.0.255 area 0
+       network 192.168.100.0 0.0.0.3 area 0
+       network 192.168.0.0 0.0.0.3 area 0
+      exit
+        </pre>
+      
+        <h4>Router1</h4>
+        <pre>
+      interface G0/0
+       ip address 192.168.10.3 255.255.255.0
+       standby 1 ip 192.168.10.1
+       standby 1 priority 90
+       no shutdown
+      exit
+      interface G0/1
+       ip address 192.168.20.3 255.255.255.0
+       standby 2 ip 192.168.20.1
+       standby 2 priority 110
+       standby 2 preempt
+       no shutdown
+      exit
+      interface G0/2
+       ip address 192.168.100.2 255.255.255.252
+       no shutdown
+      exit
+      interface S0/0/0
+       ip address 192.168.0.5 255.255.255.252
+       no shutdown
+      exit
+      router ospf 1
+       auto-cost reference-bandwidth 10000
+       passive-interface G0/0
+       passive-interface G0/1
+       network 192.168.10.0 0.0.0.255 area 0
+       network 192.168.20.0 0.0.0.255 area 0
+       network 192.168.100.0 0.0.0.3 area 0
+       network 192.168.0.0 0.0.0.3 area 0
+      exit
+        </pre>
+      
+        <h4>Router2</h4>
+        <pre>
+      interface S0/0/0
+       ip address 192.168.0.2 255.255.255.252
+       no shutdown
+      exit
+      interface S0/0/1
+       ip address 192.168.0.6 255.255.255.252
+       no shutdown
+      exit
+      interface Loopback0
+       ip address 203.0.113.1 255.255.255.0
+       no shutdown
+      exit
+      router ospf 1
+       auto-cost reference-bandwidth 10000
+       network 192.168.0.0 0.0.0.7 area 0
+       network 203.0.113.0 0.0.0.255 area 0
+       default-information originate
+      exit
+        </pre>
+      
+        <h4>Switch0</h4>
+        <pre>
+      vlan 10
+       name VLAN10
+      exit
+      vlan 20
+       name VLAN20
+      exit
+      interface range F0/1 - 4
+       switchport mode access
+       switchport access vlan 10
+       no shutdown
+      exit
+      interface F0/5
+       switchport mode trunk
+       switchport trunk allowed vlan 10,20
+       no shutdown
+      exit
+        </pre>
+      
+        <h4>Switch1</h4>
+        <pre>
+      vlan 10
+       name VLAN10
+      exit
+      vlan 20
+       name VLAN20
+      exit
+      interface range F0/1 - 4
+       switchport mode access
+       switchport access vlan 20
+       no shutdown
+      exit
+      interface F0/5
+       switchport mode trunk
+       switchport trunk allowed vlan 10,20
+       no shutdown
+      exit
+        </pre>
+      
+        <h4>PC0</h4>
+        <pre>
+      interface Fa0
+       ip address 192.168.10.10 255.255.255.0
+       default-gateway 192.168.10.1
+      exit
+        </pre>
+      
+        <h4>PC1</h4>
+        <pre>
+      interface Fa0
+       ip address 192.168.10.11 255.255.255.0
+       default-gateway 192.168.10.1
+      exit
+        </pre>
+      
+        <h4>PC2</h4>
+        <pre>
+      interface Fa0
+       ip address 192.168.20.10 255.255.255.0
+       default-gateway 192.168.20.1
+      exit
+        </pre>
+      
+        <h4>PC3</h4>
+        <pre>
+      interface Fa0
+       ip address 192.168.20.11 255.255.255.0
+       default-gateway 192.168.20.1
+      exit
+        </pre>
+      </div>
+
+    <div class="project-details">
+      <h3>Verification</h3>
+      <p>The HSRP status on Router0 and Router1 shows Router0 as active for VLAN 10 (virtual IP 192.168.10.1) and Router1 as active for VLAN 20 (virtual IP 192.168.20.1). Failover was tested by shutting down Router0’s G0/0, confirming Router1 took over as active for VLAN 10.</p>
+      <img src="images/fhrp-hsrp-status.png" alt="HSRP Status" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 (192.168.10.10) to PC2 (192.168.20.10) verifies inter-VLAN routing via OSPF. A ping from PC0 to Router2’s Loopback0 (203.0.113.1) confirms external connectivity through the default route. HSRP failover ensures uninterrupted connectivity during router failures.</p>
+      <img src="images/fhrp-ping.png" alt="FHRP Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

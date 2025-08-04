@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - ACL Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>ACL Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and implementation of Access Control Lists (ACLs) to enforce network security policies. ACLs are used to filter traffic between VLANs, a DMZ, and an external network, ensuring controlled access while maintaining connectivity. The setup includes three VLANs, two internal routers, an edge router, and an external device simulating an ISP connection, with OSPF for dynamic routing.</p>
+      <p><strong>What are ACLs?</strong> ACLs filter traffic based on rules, allowing or denying packets using criteria like source/destination IP, protocol, and port. Standard ACLs filter by source IP, while extended ACLs offer more granularity. This lab uses both to secure inter-VLAN traffic, restrict DMZ access, and control external connectivity.</p>
+      <p>The lab configures VLAN 10 (Sales), VLAN 20 (Engineering), and VLAN 30 (DMZ), with Router0 as the edge router, Router1 managing VLAN 10, and Router2 managing VLAN 20 and the DMZ. OSPF ensures routing with a reference bandwidth of 10,000 Mbps. Key objectives include verifying ACL enforcement, inter-VLAN routing, and external connectivity to the DMZ.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router0, Router1, Router2 - Cisco 2911.</li>
+            <li>Switch0, Switch1, Switch2 - Cisco 2950.</li>
+            <li>PC0, PC1 (connected to Switch0), PC2, PC3 (connected to Switch1), PC4 (external).</li>
+            <li>Server0 (connected to Switch2, DMZ).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Router0 G0/0 to PC4 (external).</li>
+            <li>Router0 S0/0/0 to Router2 S0/0/0 (serial link).</li>
+            <li>Router0 S0/0/1 to Router1 S0/0/0 (serial link).</li>
+            <li>Router1 G0/0 to Switch0 F0/1 (VLAN 10).</li>
+            <li>Router1 G0/1 to Router2 G0/1 (transit link).</li>
+            <li>Router2 G0/0 to Switch1 F0/1 (VLAN 20).</li>
+            <li>Router2 G0/2 to Switch2 F0/1 (VLAN 30).</li>
+            <li>Switch0 F0/2 to PC0, F0/3 to PC1 (VLAN 10).</li>
+            <li>Switch0 F0/4 to Switch1 F0/4 (trunk link).</li>
+            <li>Switch1 F0/2 to PC2, F0/3 to PC3 (VLAN 20).</li>
+            <li>Switch2 F0/2 to Server0 (VLAN 30).</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10: 192.168.10.0/24 (Router1 G0/0: 192.168.10.1, PC0: 192.168.10.10, PC1: 192.168.10.11).</li>
+            <li>VLAN 20: 192.168.20.0/24 (Router2 G0/0: 192.168.20.1, PC2: 192.168.20.10, PC3: 192.168.20.11).</li>
+            <li>VLAN 30 (DMZ): 192.168.30.0/24 (Router2 G0/2: 192.168.30.1, Server0: 192.168.30.10).</li>
+            <li>Router0 G0/0 to PC4: 203.0.113.0/24 (Router0: 203.0.113.1, PC4: 203.0.113.10).</li>
+            <li>Router0 S0/0/0 to Router2 S0/0/0: 10.0.0.4/30 (Router0: 10.0.0.5, Router2: 10.0.0.6).</li>
+            <li>Router0 S0/0/1 to Router1 S0/0/0: 10.0.0.0/30 (Router0: 10.0.0.1, Router1: 10.0.0.2).</li>
+            <li>Router1 G0/1 to Router2 G0/1: 10.0.0.8/30 (Router1: 10.0.0.9, Router2: 10.0.0.10).</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/acl-topology.png" alt="ACL Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>PC0</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.10.10 255.255.255.0
+ default-gateway 192.168.10.1
+exit
+      </pre>
+
+      <h4>PC1</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.10.11 255.255.255.0
+ default-gateway 192.168.10.1
+exit
+      </pre>
+
+      <h4>PC2</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.20.10 255.255.255.0
+ default-gateway 192.168.20.1
+exit
+      </pre>
+
+      <h4>PC3</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.20.11 255.255.255.0
+ default-gateway 192.168.20.1
+exit
+      </pre>
+
+      <h4>Server0</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.30.10 255.255.255.0
+ default-gateway 192.168.30.1
+exit
+      </pre>
+
+      <h4>Switch0</h4>
+      <pre>
+vlan 10
+ name VLAN10
+exit
+vlan 20
+ name VLAN20
+exit
+vlan 30
+ name VLAN30
+exit
+interface range F0/1 - 3
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+exit
+interface F0/4
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20
+ no shutdown
+exit
+      </pre>
+
+      <h4>Switch1</h4>
+      <pre>
+vlan 10
+ name VLAN10
+exit
+vlan 20
+ name VLAN20
+exit
+vlan 30
+ name VLAN30
+exit
+interface range F0/1 - 3
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+exit
+interface F0/4
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20
+ no shutdown
+exit
+      </pre>
+
+      <h4>Switch2</h4>
+      <pre>
+vlan 10
+ name VLAN10
+exit
+vlan 20
+ name VLAN20
+exit
+vlan 30
+ name VLAN30
+exit
+interface range F0/1 - 2
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router0</h4>
+      <pre>
+interface G0/0
+ ip address 203.0.113.1 255.255.255.0
+ no shutdown
+exit
+interface S0/0/0
+ ip address 10.0.0.5 255.255.255.252
+ no shutdown
+exit
+interface S0/0/1
+ ip address 10.0.0.1 255.255.255.252
+ no shutdown
+exit
+router ospf 1
+ auto-cost reference-bandwidth 10000
+ passive-interface G0/0
+ network 203.0.113.0 0.0.0.255 area 0
+ network 10.0.0.0 0.0.0.3 area 0
+ network 10.0.0.4 0.0.0.3 area 0
+ default-information originate
+exit
+ip access-list extended EXTERNAL_IN
+ permit tcp host 203.0.113.10 host 192.168.30.10 eq 80
+ permit tcp host 203.0.113.10 host 192.168.30.10 eq 443
+ deny ip 203.0.113.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 203.0.113.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit tcp any any established
+ permit ip any any
+exit
+interface G0/0
+ ip access-group EXTERNAL_IN in
+exit
+      </pre>
+
+      <h4>Router1</h4>
+      <pre>
+interface G0/0
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+exit
+interface S0/0/0
+ ip address 10.0.0.2 255.255.255.252
+ no shutdown
+exit
+interface G0/1
+ ip address 10.0.0.9 255.255.255.252
+ no shutdown
+exit
+router ospf 1
+ auto-cost reference-bandwidth 10000
+ passive-interface G0/0
+ network 192.168.10.0 0.0.0.255 area 0
+ network 10.0.0.0 0.0.0.3 area 0
+ network 10.0.0.8 0.0.0.3 area 0
+exit
+      </pre>
+
+      <h4>Router2</h4>
+      <pre>
+interface G0/0
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+exit
+interface G0/2
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+exit
+interface S0/0/0
+ ip address 10.0.0.6 255.255.255.252
+ no shutdown
+exit
+interface G0/1
+ ip address 10.0.0.10 255.255.255.252
+ no shutdown
+exit
+router ospf 1
+ auto-cost reference-bandwidth 10000
+ passive-interface G0/0
+ passive-interface G0/2
+ network 192.168.20.0 0.0.0.255 area 0
+ network 192.168.30.0 0.0.0.255 area 0
+ network 10.0.0.4 0.0.0.3 area 0
+ network 10.0.0.8 0.0.0.3 area 0
+exit
+access-list 10 deny 192.168.10.0 0.0.0.255
+access-list 10 permit any
+interface G0/2
+ ip access-group 10 in
+exit
+ip access-list extended VLAN20_DMZ
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 80
+ permit tcp 192.168.20.0 0.0.0.255 host 192.168.30.10 eq 443
+ deny ip 192.168.20.0 0.0.0.255 192.168.30.0 0.0.0.255
+ permit ip any any
+exit
+interface G0/0
+ ip access-group VLAN20_DMZ out
+exit
+ip access-list extended DMZ_OUT
+ deny ip 192.168.30.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 192.168.30.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit ip any any
+exit
+interface G0/2
+ ip access-group DMZ_OUT out
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>Verification</h3>
+      <p>OSPF neighbor tables confirm adjacencies between Router0, Router1, and Router2. ACL matches on Router0 and Router2 show traffic filtering as expected: VLAN 10 cannot access the DMZ, VLAN 20 can only access Server0 on HTTP/HTTPS, PC4 can only access Server0 on HTTP/HTTPS, and the DMZ cannot initiate traffic to internal VLANs.</p>
+      <img src="images/acl-ospf-neighbors.png" alt="OSPF Neighbors" class="project-image">
+      <img src="images/acl-acl-matches.png" alt="ACL Matches" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 (192.168.10.10) to PC2 (192.168.20.10) verifies inter-VLAN routing via OSPF. PC0 cannot ping Server0 (192.168.30.10) due to ACL restrictions. PC2 can access Server0 on HTTP/HTTPS but cannot ping it. PC4 (203.0.113.10) can access Server0 on HTTP/HTTPS but cannot reach internal VLANs, confirming ACL enforcement.</p>
+      <img src="images/acl-ping.png" alt="ACL Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

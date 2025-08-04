@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - VLSM and Static Routing Project</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>Enterprise Network with VLSM and Static Routing</h2>
+
+    <!-- Topology Section -->
+    <div class="project-details">
+      <h3>Topology</h3>
+      <p>This project involves a multi-LAN network connecting two sites with a point-to-point router link. The topology includes:</p>
+      <ul>
+        <li>2 Routers (Router0, Router1)</li>
+        <li>4 Switches (Switch0, Switch1, Switch2, Switch3)</li>
+        <li>4 LANs: LAN 1 (60 hosts), LAN 2 (47 hosts), LAN 3 (15 hosts), LAN 4 (8 hosts)</li>
+        <li>Point-to-point serial link between Router0 and Router1</li>
+      </ul>
+      <img src="images/network-topology.png" alt="Network Topology Diagram" class="project-image">
+    </div>
+
+    <!-- VLSM and Static Routing Intro -->
+    <div class="project-details">
+      <h3>About VLSM and Static Routing</h3>
+      <p><strong>Variable Length Subnet Masking (VLSM)</strong> was used to efficiently allocate IP addresses from the 192.168.5.0/24 network. VLSM allows subnets of different sizes, minimizing IP waste by tailoring each subnet to the exact number of hosts needed.</p>
+      <p><strong>Static Routing</strong> was implemented to enable communication between LANs. Static routes were configured on Router0 and Router1, directing traffic between the two sites via the point-to-point link. This approach ensures predictable routing in a small network while demonstrating foundational routing skills.</p>
+    </div>
+
+    <!-- Configurations Section -->
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>IP Address Assignments</h4>
+      <p>Using VLSM, the network was subnetted as follows:</p>
+      <ul>
+        <li>LAN 1 (60 hosts): 192.168.5.0/26 (192.168.5.1 - 192.168.5.62)</li>
+        <li>LAN 2 (47 hosts): 192.168.5.64/26 (192.168.5.65 - 192.168.5.126)</li>
+        <li>LAN 3 (15 hosts): 192.168.5.128/27 (192.168.5.129 - 192.168.5.158)</li>
+        <li>LAN 4 (8 hosts): 192.168.5.160/28 (192.168.5.161 - 192.168.5.174)</li>
+        <li>Router Link: 192.168.5.176/30 (192.168.5.177 - 192.168.5.178)</li>
+      </ul>
+      <p><strong>Note on IP Assignment Logic:</strong> For each LAN, the first usable IP address was assigned to the PC to ensure a consistent and predictable addressing scheme for end devices. The last usable IP address was assigned to the router interface, as it’s a common convention to reserve the highest address for the gateway, making it easily identifiable in network documentation and troubleshooting.</p>
+      <p><strong>Device IPs:</strong></p>
+      <ul>
+        <li>PC0 (LAN 1): 192.168.5.1, Default Gateway: 192.168.5.62 (Router0 Gig0/0)</li>
+        <li>PC1 (LAN 2): 192.168.5.65, Default Gateway: 192.168.5.126 (Router0 Gig0/1)</li>
+        <li>PC2 (LAN 3): 192.168.5.129, Default Gateway: 192.168.5.158 (Router1 Gig0/0)</li>
+        <li>PC3 (LAN 4): 192.168.5.161, Default Gateway: 192.168.5.174 (Router1 Gig0/1)</li>
+        <li>Router0 g0/2: 192.168.5.177</li>
+        <li>Router1 g0/2: 192.168.5.178</li>
+      </ul>
+
+      <h4>Router Configurations</h4>
+      <p><strong>Router0:</strong></p>
+      <pre>
+Router0> enable
+Router0# configure terminal
+Router0(config)# interface GigabitEthernet0/0
+Router0(config-if)# ip address 192.168.5.62 255.255.255.192
+Router0(config-if)# no shutdown
+Router0(config-if)# exit
+Router0(config)# interface GigabitEthernet0/1
+Router0(config-if)# ip address 192.168.5.126 255.255.255.192
+Router0(config-if)# no shutdown
+Router0(config-if)# exit
+Router0(config)# interface g0/2
+Router0(config-if)# ip address 192.168.5.177 255.255.255.252
+Router0(config-if)# no shutdown
+Router0(config-if)# exit
+Router0(config)# ip route 192.168.5.128 255.255.255.224 192.168.5.178
+Router0(config)# ip route 192.168.5.160 255.255.255.240 192.168.5.178
+      </pre>
+
+      <p><strong>Router1:</strong></p>
+      <pre>
+Router1> enable
+Router1# configure terminal
+Router1(config)# interface GigabitEthernet0/0
+Router1(config-if)# ip address 192.168.5.158 255.255.255.224
+Router1(config-if)# no shutdown
+Router1(config-if)# exit
+Router1(config)# interface GigabitEthernet0/1
+Router1(config-if)# ip address 192.168.5.174 255.255.255.240
+Router1(config-if)# no shutdown
+Router1(config-if)# exit
+Router1(config)# interface g0/2
+Router1(config-if)# ip address 192.168.5.178 255.255.255.252
+Router1(config-if)# no shutdown
+Router1(config-if)# exit
+Router1(config)# ip route 192.168.5.0 255.255.255.192 192.168.5.177
+Router1(config)# ip route 192.168.5.64 255.255.255.192 192.168.5.177
+      </pre>
+
+      <h4>PC Configurations</h4>
+      <p>Each PC was configured with the first usable IP in its subnet and the router interface as the default gateway:</p>
+      <ul>
+        <li>PC0: IP 192.168.5.1, Subnet Mask 255.255.255.192, Gateway 192.168.5.62</li>
+        <li>PC1: IP 192.168.5.65, Subnet Mask 255.255.255.192, Gateway 192.168.5.126</li>
+        <li>PC2: IP 192.168.5.129, Subnet Mask 255.255.255.224, Gateway 192.168.5.158</li>
+        <li>PC3: IP 192.168.5.161, Subnet Mask 255.255.255.240, Gateway 192.168.5.174</li>
+      </ul>
+    </div>
+
+    <!-- Results Section -->
+    <div class="project-details">
+      <h3>Results</h3>
+      <p>The network was successfully configured and tested:</p>
+      <ul>
+        <li>All PCs could ping each other, confirming static routing worked as expected.</li>
+        <li>Example: Ping from PC0 (192.168.5.1) to PC2 (192.168.5.129) succeeded with 100% packet delivery, as shown in the image below.</li>
+        <li>VLSM ensured efficient IP allocation, leaving 76 addresses (192.168.5.180 - 192.168.5.255) for future expansion.</li>
+        <li>The design demonstrated scalability and reliability for a small enterprise network.</li>
+      </ul>
+      <img src="images/ping-result.png" alt="Ping from PC0 to PC2" class="project-image">
+      <br>
+      <p><strong>Figure:</strong> Successful ping from PC0 (LAN 1, 192.168.5.1) to PC2 (LAN 3, 192.168.5.129), verifying inter-LAN connectivity.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

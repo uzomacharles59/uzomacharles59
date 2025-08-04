@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - EtherChannel Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>EtherChannel Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab focuses on configuring multiple EtherChannel links in a complex Layer 2 topology to enhance bandwidth and redundancy. EtherChannel, also known as link aggregation, is a critical CCNA topic that bundles physical links into a single logical link. In this lab, I set up two EtherChannels using LACP between a core switch and two distribution switches, integrated VLANs, and implemented inter-VLAN routing with a Router-on-a-Stick configuration. A redundant link between the distribution switches introduces STP interaction, adding complexity.</p>
+      <p><strong>What is EtherChannel?</strong> EtherChannel is a technology that allows grouping of several physical Ethernet links into a single logical link, providing higher throughput and fault tolerance. It uses protocols like LACP (Link Aggregation Control Protocol) or PAgP (Port Aggregation Protocol) to negotiate the bundling. Benefits include load balancing across links, increased bandwidth, and automatic failover if one link fails.</p>
+      <p>The lab demonstrates advanced configuration, verification, and testing of EtherChannel in a multi-switch environment, ensuring connectivity across VLANs through inter-VLAN routing, and showcasing the interplay with STP for loop prevention.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Switch0 (Cisco 2950, core), Switch1 (Cisco 2950, distribution), Switch2 (Cisco 2950, distribution).</li>
+            <li>Router0 (Cisco 2911) for inter-VLAN routing.</li>
+            <li>Switch1: PC0 (VLAN 10), PC1 (VLAN 20), PC2 (VLAN 30).</li>
+            <li>Switch2: PC3 (VLAN 10), PC4 (VLAN 20), PC5 (VLAN 30).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>EtherChannel 1 (Port-channel1): Switch0 F0/1-F0/2 to Switch1 F0/1-F0/2 (trunk).</li>
+            <li>EtherChannel 2 (Port-channel2): Switch0 F0/3-F0/4 to Switch2 F0/1-F0/2 (trunk).</li>
+            <li>Redundant Link: Switch1 F0/3 to Switch2 F0/3 (trunk, blocked by STP).</li>
+            <li>Switch0 F0/5 to Router0 G0/0/0 (trunk).</li>
+            <li>Switch1 F0/4 to PC0, F0/5 to PC1, F0/6 to PC2.</li>
+            <li>Switch2 F0/4 to PC3, F0/5 to PC4, F0/6 to PC5.</li>
+          </ul>
+        </li>
+        <li><strong>VLANs</strong>: VLAN 10 (IT Dept), VLAN 20 (Sales), VLAN 30 (HR).</li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10: 192.168.10.0/26, Gateway 192.168.10.62.</li>
+            <li>VLAN 20: 192.168.10.64/26, Gateway 192.168.10.126.</li>
+            <li>VLAN 30: 192.168.10.128/26, Gateway 192.168.10.190.</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/etherchannel-topology.png" alt="EtherChannel Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>Switch0 (Core Switch)</h4>
+      <pre>
+configure terminal
+vlan 10
+ name IT_Dept
+exit
+vlan 20
+ name Sales
+exit
+vlan 30
+ name HR
+exit
+interface range FastEthernet0/1 - 2
+ channel-group 1 mode active
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+interface range FastEthernet0/3 - 4
+ channel-group 2 mode active
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+interface FastEthernet0/5
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+      </pre>
+
+      <h4>Switch1 (Distribution Switch)</h4>
+      <pre>
+configure terminal
+vlan 10
+ name IT_Dept
+exit
+vlan 20
+ name Sales
+exit
+vlan 30
+ name HR
+exit
+interface FastEthernet0/4
+ switchport mode access
+ switchport access vlan 10
+exit
+interface FastEthernet0/5
+ switchport mode access
+ switchport access vlan 20
+exit
+interface FastEthernet0/6
+ switchport mode access
+ switchport access vlan 30
+exit
+interface range FastEthernet0/1 - 2
+ channel-group 1 mode active
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+interface FastEthernet0/3
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+      </pre>
+
+      <h4>Switch2 (Distribution Switch)</h4>
+      <pre>
+configure terminal
+vlan 10
+ name IT_Dept
+exit
+vlan 20
+ name Sales
+exit
+vlan 30
+ name HR
+exit
+interface FastEthernet0/4
+ switchport mode access
+ switchport access vlan 10
+exit
+interface FastEthernet0/5
+ switchport mode access
+ switchport access vlan 20
+exit
+interface FastEthernet0/6
+ switchport mode access
+ switchport access vlan 30
+exit
+interface range FastEthernet0/1 - 2
+ channel-group 2 mode active
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+interface FastEthernet0/3
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+exit
+      </pre>
+
+      <h4>Router0 (ROAS)</h4>
+      <pre>
+configure terminal
+ip routing
+interface GigabitEthernet0/0/0
+ no shutdown
+exit
+interface GigabitEthernet0/0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.62 255.255.255.192
+ no shutdown
+exit
+interface GigabitEthernet0/0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.10.126 255.255.255.192
+ no shutdown
+exit
+interface GigabitEthernet0/0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.10.190 255.255.255.192
+ no shutdown
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>EtherChannel Verification</h3>
+      <p>The EtherChannels were verified using the `show etherchannel summary` command. Port-channel1 (Switch0-Switch1) and Port-channel2 (Switch0-Switch2) are active, with both links in each bundle operational using LACP.</p>
+      <img src="images/etherchannel-status.png" alt="EtherChannel Status" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>STP Analysis</h3>
+      <p>The redundant link between Switch1 F0/3 and Switch2 F0/3 is blocked by STP to prevent a loop in the topology. Switch0 acts as the root bridge by default, with Port-channel1 and Port-channel2 as root ports.</p>
+      <img src="images/etherchannel-stp.png" alt="STP Status" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Inter-VLAN Routing Test</h3>
+      <p>A successful ping from PC0 (VLAN 10, 192.168.10.2) on Switch1 to PC5 (VLAN 30, 192.168.10.131) on Switch2 confirms that inter-VLAN routing is working, with traffic passing through the EtherChannel links.</p>
+      <img src="images/etherchannel-ping.png" alt="Inter-VLAN Ping" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

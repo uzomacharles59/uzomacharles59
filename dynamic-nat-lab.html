@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - Dynamic NAT Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>Dynamic NAT Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of Dynamic Network Address Translation (NAT), which maps private IP addresses to a pool of public IP addresses dynamically as needed. Building on the <a href="nat-lab.html">Static NAT Lab</a>, this setup uses the same topology (two internal PCs behind Router R1, connected to an external server) but implements a pool-based translation for outbound traffic.</p>
+      <p><strong>What is Dynamic NAT?</strong> Dynamic NAT assigns public IPs from a configured pool to private IPs on a first-come, first-served basis, with mappings that expire after inactivity. This lab configures Router R1 with a NAT pool to allow PC0 and PC1 to access Server1 using dynamic translations.</p>
+      <p>The lab configures Router R1 to perform Dynamic NAT, using a pool of two public IPs (203.0.113.10 - 203.0.113.11) for the inside network (192.168.1.0/24), demonstrating flexible address allocation compared to static mappings.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router R1 - Cisco 2911 (NAT device).</li>
+            <li>Switch S1 - Cisco 2950.</li>
+            <li>PC0, PC1 - Internal devices.</li>
+            <li>Server1 - External device.</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>PC0 (F0) to Switch S1 F0/1.</li>
+            <li>PC1 (F0) to Switch S1 F0/2.</li>
+            <li>Switch S1 G0/1 to Router R1 G0/1 (Inside interface).</li>
+            <li>Router R1 G0/0 (Outside interface) to Server1.</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>Inside network: 192.168.1.0/24
+              <ul>
+                <li>PC0: 192.168.1.10, Gateway: 192.168.1.1.</li>
+                <li>PC1: 192.168.1.11, Gateway: 192.168.1.1.</li>
+                <li>Router R1 G0/1: 192.168.1.1.</li>
+              </ul>
+            </li>
+            <li>Outside network: 203.0.113.0/24
+              <ul>
+                <li>Router R1 G0/0: 203.0.113.1.</li>
+                <li>Server1: 203.0.113.2, Gateway: 203.0.113.1.</li>
+              </ul>
+            </li>
+            <li>Dynamic NAT Pool:
+              <ul>
+                <li>Range: 203.0.113.10 - 203.0.113.11.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/dynamic-nat-topology.png" alt="Dynamic NAT Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>PC0</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.1.10 255.255.255.0
+ default-gateway 192.168.1.1
+exit
+      </pre>
+
+      <h4>PC1</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.1.11 255.255.255.0
+ default-gateway 192.168.1.1
+exit
+      </pre>
+
+      <h4>Switch S1</h4>
+      <pre>
+interface range F0/1 - 2
+ switchport mode access
+ no shutdown
+exit
+interface G0/1
+ switchport mode access
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router R1</h4>
+      <pre>
+interface G0/1
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+exit
+interface G0/0
+ ip address 203.0.113.1 255.255.255.0
+ no shutdown
+exit
+access-list 1 permit 192.168.1.0 0.0.0.255
+ip nat pool NAT_POOL 203.0.113.10 203.0.113.11 netmask 255.255.255.0
+ip nat inside source list 1 pool NAT_POOL
+interface G0/1
+ ip nat inside
+exit
+interface G0/0
+ ip nat outside
+exit
+      </pre>
+
+      <h4>Server1</h4>
+      <pre>
+interface Fa0
+ ip address 203.0.113.2 255.255.255.0
+ default-gateway 203.0.113.1
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>Verification</h3>
+      <p>Verify the NAT configuration on Router R1 using <code>show ip nat translations</code> to confirm dynamic mappings (e.g., 192.168.1.10 to a pool IP like 203.0.113.10). Check NAT statistics with <code>show ip nat statistics</code> to review pool usage and translation activity.</p>
+      <img src="images/dynamic-nat-translations.png" alt="Dynamic NAT Translations" class="project-image">
+      <img src="images/dynamic-nat-statistics.png" alt="Dynamic NAT Statistics" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC1 to Server1 (203.0.113.2) verifies outbound connectivity, with NAT dynamically assigning a pool IP (e.g., 203.0.113.10). A ping from Server1 to PC0 will fail unless a port is forwarded, as Dynamic NAT does not support inbound initiation by default. Repeat for PC1, noting potential pool exhaustion if both PCs are active simultaneously.</p>
+      <img src="images/dynamic-nat-ping-test.png" alt="Dynamic NAT Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

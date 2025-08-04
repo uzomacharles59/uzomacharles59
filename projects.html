@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - Projects</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>Projects</h2>
+    <div class="projects-grid">
+      <div class="project-card">
+        <h3>PAT Lab</h3>
+        <p>Configured Port Address Translation (PAT) to map multiple private IPs to a single public IP, resolving pool exhaustion for multiple devices.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="pat-lab.html" class="project-link">View Details</a>
+      </div>
+      <div class="project-card">
+        <h3>DYNAMIC NAT Lab</h3>
+        <p>Configured Dynamic Network Address Translation (NAT) to map private IPs to a pool of public IPs, demonstrating flexible outbound connectivity.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="dynamic-nat-lab.html" class="project-link">View Project</a>
+      </div>
+
+      <div class="project-card">
+        <h3>STATIC NAT Lab</h3>
+        <p>Configured Static Network Address Translation (NAT) to map private IPs to public IPs, enabling external access to internal devices.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="nat-lab.html" class="project-link">View Project</a>
+      </div>
+      <div class="project-card">
+        <h3>DHCP Lab</h3>
+        <p>Designed and implemented a DHCP configuration across three subnets, using a server for direct IP assignment, a router as a relay agent, and another router as a DHCP server. Configured OSPF for routing and verified dynamic IP allocation.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="dhcp-lab.html" class="project-link">View Project</a>
+      </div>
+      <div class="project-card">
+        <h3>ACL Lab</h3>
+        <p>Designed and implemented Access Control Lists (ACLs) to secure a network with multiple VLANs, a DMZ, and an external connection. Configured OSPF for dynamic routing and enforced traffic policies using standard and extended ACLs.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="acl-lab.html" class="project-link">View Project</a>
+      </div>
+      <div class="project-card">
+        <h3>FHRP Lab</h3>
+        <p>Configured HSRP for gateway redundancy across two VLANs, integrated with OSPF for dynamic routing and external connectivity to an ISP router.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="fhrp-lab.html" class="project-link">View Project</a>
+      </div>
+      <div class="project-card">
+        <h3>OSPF Lab</h3>
+        <p>Configured OSPF on a four-router network with GigabitEthernet and FastEthernet links, demonstrating dynamic routing, shortest path selection, and default route propagation with an external ISP connection.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="ospf-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>EIGRP Lab</h3>
+        <p>Configured EIGRP in a four-router ring network with multiple branches, demonstrating dynamic routing, neighbor relationships, and connectivity across LANs and loopback interfaces.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="eigrp-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>RIP Lab</h3>
+        <p>Configured RIPv2 in a multi-router network with three branches, demonstrating dynamic routing, route propagation, and connectivity across LANs and loopback interfaces.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="rip-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>EtherChannel Lab</h3>
+        <p>Configured multiple EtherChannels using LACP in a complex topology with three switches, enhancing bandwidth and redundancy. Integrated VLANs, inter-VLAN routing, and a redundant link to demonstrate STP interaction.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="etherchannel-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>Spanning Tree Toolkit Lab</h3>
+        <p>Configured STP with Cisco's Spanning Tree Toolkit (PortFast, BPDU Guard, Root Guard) to prevent loops, optimize convergence, and secure a redundant Layer 2 network with VLANs and inter-VLAN routing.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="stp-toolkit-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>Layer 3 Switch VLAN Routing Lab</h3>
+        <p>Designed a small office network with inter-VLAN routing using a Layer 3 switch and SVIs to connect three departments. Added a router with a Layer 3 link and configured a default route on the switch for internet access, verified by pinging across VLANs and to the router.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="l3switch-vlan-routing.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>Router-on-a-Stick (ROAS) Lab</h3>
+        <p>Configured inter-VLAN routing using a single router interface with subinterfaces to connect multiple VLANs.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="roas-lab.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>Inter-VLAN Routing Lab</h3>
+        <p>Configured VLANs and inter-VLAN routing to segment and connect departments in a small office network.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="inter-vlan-routing.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+      <div class="project-card">
+        <h3>Enterprise Network with VLSM and Static Routing</h3>
+        <p>Designed a multi-LAN network using VLSM and static routing to enable communication across two sites.</p>
+        <p><strong>Tech:</strong> Cisco Packet Tracer, Cisco IOS</p>
+        <a href="vlsm-static-routing.html" target="_blank" class="project-link">View Project Details</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

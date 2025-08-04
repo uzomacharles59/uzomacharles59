@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - Static NAT Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>Static NAT Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of Static Network Address Translation (NAT), which maps private IP addresses to fixed public IP addresses to enable access to external networks. The setup includes two internal PCs behind a NAT router (R1), connected to an external server, showcasing one-to-one IP translations for both inbound and outbound traffic.</p>
+      <p><strong>What is Static NAT?</strong> Static NAT provides a permanent mapping of a private IP to a public IP, allowing external devices to initiate connections to internal devices using the public IP. This lab uses static NAT to map two PCs to unique public IPs.</p>
+      <p>The lab configures Router R1 to perform static NAT, ensuring PC0 and PC1 are accessible from Server1 using their mapped public IPs while maintaining their private IPs internally.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router R1 - Cisco 2911 (NAT device).</li>
+            <li>Switch S1 - Cisco 2950.</li>
+            <li>PC0, PC1 - Internal devices.</li>
+            <li>Server1 - External device.</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>PC0 (F0) to Switch S1 F0/1.</li>
+            <li>PC1 (F0) to Switch S1 F0/2.</li>
+            <li>Switch S1 G0/1 to Router R1 G0/1 (Inside interface).</li>
+            <li>Router R1 G0/0 (Outside interface) to Server1.</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>Inside network: 192.168.1.0/24
+              <ul>
+                <li>PC0: 192.168.1.10, Gateway: 192.168.1.1.</li>
+                <li>PC1: 192.168.1.11, Gateway: 192.168.1.1.</li>
+                <li>Router R1 G0/1: 192.168.1.1.</li>
+              </ul>
+            </li>
+            <li>Outside network: 203.0.113.0/24
+              <ul>
+                <li>Router R1 G0/0: 203.0.113.1.</li>
+                <li>Server1: 203.0.113.2, Gateway: 203.0.113.1.</li>
+              </ul>
+            </li>
+            <li>Static NAT Mappings:
+              <ul>
+                <li>PC0 (192.168.1.10) to 203.0.113.10.</li>
+                <li>PC1 (192.168.1.11) to 203.0.113.11.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/nat-topology.png" alt="Static NAT Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>PC0</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.1.10 255.255.255.0
+ default-gateway 192.168.1.1
+exit
+      </pre>
+
+      <h4>PC1</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.1.11 255.255.255.0
+ default-gateway 192.168.1.1
+exit
+      </pre>
+
+      <h4>Switch S1</h4>
+      <pre>
+interface range F0/1 - 2
+ switchport mode access
+ no shutdown
+exit
+interface G0/1
+ switchport mode access
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router R1</h4>
+      <pre>
+interface G0/1
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+exit
+interface G0/0
+ ip address 203.0.113.1 255.255.255.0
+ no shutdown
+exit
+ip nat inside source static 192.168.1.10 203.0.113.10
+ip nat inside source static 192.168.1.11 203.0.113.11
+interface G0/1
+ ip nat inside
+exit
+interface G0/0
+ ip nat outside
+exit
+      </pre>
+
+      <h4>Server1</h4>
+      <pre>
+interface Fa0
+ ip address 203.0.113.2 255.255.255.0
+ default-gateway 203.0.113.1
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>Verification</h3>
+      <p>Verify the NAT configuration on Router R1 using <code>show ip nat translations</code> to confirm the static mappings (192.168.1.10 to 203.0.113.10, 192.168.1.11 to 203.0.113.11). Check NAT statistics with <code>show ip nat statistics</code> to review translation counts and pool usage.</p>
+      <img src="images/nat-nat-translations.png" alt="NAT Translations" class="project-image">
+      <img src="images/nat-nat-statistics.png" alt="NAT Statistics" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 to Server1 (203.0.113.2) verifies outbound connectivity, with NAT translating 192.168.1.10 to 203.0.113.10. A ping from Server1 to PC0 (203.0.113.10) confirms inbound connectivity via the static NAT mapping. Repeat for PC1 (203.0.113.11).</p>
+      <img src="images/nat-ping-test.png" alt="NAT Ping Test" class="project-image">
+      <img src="images/nat-ping-test1.png" alt="NAT Ping Test" class="project-image">
+    </div>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

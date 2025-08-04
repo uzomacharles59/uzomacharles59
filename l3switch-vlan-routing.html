@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - Layer 3 Switch VLAN Routing Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>Layer 3 Switch VLAN Routing Lab</h2>
+
+    <!-- Topology Section -->
+    <div class="project-details">
+      <h3>Topology</h3>
+      <p>This lab simulates a small office network with three departments, each on a separate VLAN, connected using a Layer 3 switch for inter-VLAN routing. The Layer 3 switch uses Switch Virtual Interfaces (SVIs) to route traffic between VLANs, providing a more scalable solution than Router-on-a-Stick (ROAS). The topology includes:</p>
+      <ul>
+        <li>1 Layer 3 Switch (Multilayer Switch0)</li>
+        <li>1 Layer 2 Switch (Switch0)</li>
+        <li>3 VLANs:
+          <ul>
+            <li>VLAN 10 (IT Dept): 4 PCs (PC0, PC1 on Switch0; PC6, PC7 on Multilayer Switch0)</li>
+            <li>VLAN 20 (Sales): 2 PCs (PC2, PC3 on Switch0)</li>
+            <li>VLAN 30 (Marketing): 2 PCs (PC4, PC5 on Multilayer Switch0)</li>
+          </ul>
+        </li>
+        <li>Trunk link: Switch0 Fa0/5 to Multilayer Switch0 G1/0/1</li>
+      </ul>
+      <img src="images/l3switch-topology.png" alt="Network Topology Diagram" class="project-image">
+    </div>
+
+    <!-- Introduction Section -->
+    <div class="project-details">
+      <h3>Introduction</h3>
+      <p>This lab demonstrates inter-VLAN routing using a Layer 3 switch, a more scalable and efficient method compared to Router-on-a-Stick (ROAS). A Layer 3 switch performs routing using Switch Virtual Interfaces (SVIs), eliminating the need for a separate router and reducing bottlenecks.</p>
+      <p>The objective was to configure VLANs on the switches, set up SVIs on the Layer 3 switch for inter-VLAN routing, and verify connectivity between devices in different VLANs using ping tests.</p>
+    </div>
+
+    <!-- Configurations Section -->
+<div class="project-details">
+    <h3>Configurations</h3>
+    <h4>IP Address Assignments</h4>
+    <p>The network 192.168.5.0/24 was subnetted as follows:</p>
+    <ul>
+      <li>VLAN 10 (IT Dept): 192.168.5.0/26 (192.168.5.1 - 192.168.5.62)</li>
+      <li>VLAN 20 (Sales): 192.168.5.64/26 (192.168.5.65 - 192.168.5.126)</li>
+      <li>VLAN 30 (Marketing): 192.168.5.128/26 (192.168.5.129 - 192.168.5.190)</li>
+    </ul>
+    <p><strong>Note on IP Assignment Logic:</strong> For each VLAN, the first usable IP address was assigned to the PCs to ensure a consistent addressing scheme. The last usable IP address was assigned to the Layer 3 switch’s SVI, following the convention of reserving the highest address for the gateway.</p>
+    <p><strong>Device IPs:</strong></p>
+    <ul>
+      <li>VLAN 10 (IT Dept):
+        <ul>
+          <li>PC0 (Switch0): 192.168.5.1, Default Gateway: 192.168.5.62</li>
+          <li>PC1 (Switch0): 192.168.5.2, Default Gateway: 192.168.5.62</li>
+          <li>PC6 (Multilayer Switch0): 192.168.5.5, Default Gateway: 192.168.5.62</li>
+          <li>PC7 (Multilayer Switch0): 192.168.5.6, Default Gateway: 192.168.5.62</li>
+          <li>Multilayer Switch0 VLAN 10 SVI: 192.168.5.62</li>
+        </ul>
+      </li>
+      <li>VLAN 20 (Sales):
+        <ul>
+          <li>PC2 (Switch0): 192.168.5.65, Default Gateway: 192.168.5.126</li>
+          <li>PC3 (Switch0): 192.168.5.66, Default Gateway: 192.168.5.126</li>
+          <li>Multilayer Switch0 VLAN 20 SVI: 192.168.5.126</li>
+        </ul>
+      </li>
+      <li>VLAN 30 (Marketing):
+        <ul>
+          <li>PC4 (Multilayer Switch0): 192.168.5.129, Default Gateway: 192.168.5.190</li>
+          <li>PC5 (Multilayer Switch0): 192.168.5.130, Default Gateway: 192.168.5.190</li>
+          <li>Multilayer Switch0 VLAN 30 SVI: 192.168.5.190</li>
+        </ul>
+      </li>
+    </ul>
+  
+    <h4>Layer 3 Switch Configurations</h4>
+    <p><strong>Multilayer Switch0 (Layer 3):</strong></p>
+    <pre>
+  MultilayerSwitch0> enable
+  MultilayerSwitch0# configure terminal
+  MultilayerSwitch0(config)# vlan 10
+  MultilayerSwitch0(config-vlan)# name IT_Dept
+  MultilayerSwitch0(config-vlan)# exit
+  MultilayerSwitch0(config)# vlan 20
+  MultilayerSwitch0(config-vlan)# name Sales
+  MultilayerSwitch0(config-vlan)# exit
+  MultilayerSwitch0(config)# vlan 30
+  MultilayerSwitch0(config-vlan)# name Marketing
+  MultilayerSwitch0(config-vlan)# exit
+  MultilayerSwitch0(config)# interface range GigabitEthernet1/0/4 - 5
+  MultilayerSwitch0(config-if-range)# switchport mode access
+  MultilayerSwitch0(config-if-range)# switchport access vlan 10
+  MultilayerSwitch0(config-if-range)# exit
+  MultilayerSwitch0(config)# interface range GigabitEthernet1/0/2 - 3
+  MultilayerSwitch0(config-if-range)# switchport mode access
+  MultilayerSwitch0(config-if-range)# switchport access vlan 30
+  MultilayerSwitch0(config-if-range)# exit
+  MultilayerSwitch0(config)# interface GigabitEthernet1/0/1
+  MultilayerSwitch0(config-if)# switchport mode trunk
+  MultilayerSwitch0(config-if)# switchport trunk allowed vlan 10,20,30
+  MultilayerSwitch0(config-if)# exit
+  MultilayerSwitch0(config)# ip routing
+  MultilayerSwitch0(config)# interface vlan 10
+  MultilayerSwitch0(config-if)# ip address 192.168.5.62 255.255.255.192
+  MultilayerSwitch0(config-if)# no shutdown
+  MultilayerSwitch0(config-if)# exit
+  MultilayerSwitch0(config)# interface vlan 20
+  MultilayerSwitch0(config-if)# ip address 192.168.5.126 255.255.255.192
+  MultilayerSwitch0(config-if)# no shutdown
+  MultilayerSwitch0(config-if)# exit
+  MultilayerSwitch0(config)# interface vlan 30
+  MultilayerSwitch0(config-if)# ip address 192.168.5.190 255.255.255.192
+  MultilayerSwitch0(config-if)# no shutdown
+  MultilayerSwitch0(config-if)# exit
+    </pre>
+    <br>
+    <p><strong>Note on `no switchport`:</strong> The `no switchport` command was not used in this lab because inter-VLAN routing is handled using Switch Virtual Interfaces (SVIs) on Multilayer Switch0. SVIs (`interface vlan`) allow the switch to route between VLANs without converting physical interfaces to routed ports. Physical interfaces remain in Layer 2 mode (access or trunk) to handle VLAN traffic. The `no switchport` command would be used if we had a direct Layer 3 link to another device (e.g., a router for external connectivity), converting a physical interface into a routed port with its own IP address.</p>
+  
+    <h4>Layer 2 Switch Configurations</h4>
+    <p><strong>Switch0 (Layer 2):</strong></p>
+    <pre>
+  Switch0> enable
+  Switch0# configure terminal
+  Switch0(config)# vlan 10
+  Switch0(config-vlan)# name IT_Dept
+  Switch0(config-vlan)# exit
+  Switch0(config)# vlan 20
+  Switch0(config-vlan)# name Sales
+  Switch0(config-vlan)# exit
+  Switch0(config)# vlan 30
+  Switch0(config-vlan)# name Marketing
+  Switch0(config-vlan)# exit
+  Switch0(config)# interface range FastEthernet0/1 - 2
+  Switch0(config-if-range)# switchport mode access
+  Switch0(config-if-range)# switchport access vlan 10
+  Switch0(config-if-range)# exit
+  Switch0(config)# interface range FastEthernet0/3 - 4
+  Switch0(config-if-range)# switchport mode access
+  Switch0(config-if-range)# switchport access vlan 20
+  Switch0(config-if-range)# exit
+  Switch0(config)# interface FastEthernet0/5
+  Switch0(config-if)# switchport mode trunk
+  Switch0(config-if)# switchport trunk allowed vlan 10,20,30
+  Switch0(config-if)# exit
+    </pre>
+  
+    <h4>PC Configurations</h4>
+    <p>Each PC was configured with the first usable IP in its VLAN and the Layer 3 switch’s SVI as the default gateway:</p>
+    <ul>
+      <li>PC0 (Switch0, VLAN 10): IP 192.168.5.1, Subnet Mask 255.255.255.192, Gateway 192.168.5.62</li>
+      <li>PC1 (Switch0, VLAN 10): IP 192.168.5.2, Subnet Mask 255.255.255.192, Gateway 192.168.5.62</li>
+      <li>PC2 (Switch0, VLAN 20): IP 192.168.5.65, Subnet Mask 255.255.255.192, Gateway 192.168.5.126</li>
+      <li>PC3 (Switch0, VLAN 20): IP 192.168.5.66, Subnet Mask 255.255.255.192, Gateway 192.168.5.126</li>
+      <li>PC4 (Multilayer Switch0, VLAN 30): IP 192.168.5.129, Subnet Mask 255.255.255.192, Gateway 192.168.5.190</li>
+      <li>PC5 (Multilayer Switch0, VLAN 30): IP 192.168.5.130, Subnet Mask 255.255.255.192, Gateway 192.168.5.190</li>
+      <li>PC6 (Multilayer Switch0, VLAN 10): IP 192.168.5.5, Subnet Mask 255.255.255.192, Gateway 192.168.5.62</li>
+      <li>PC7 (Multilayer Switch0, VLAN 10): IP 192.168.5.6, Subnet Mask 255.255.255.192, Gateway 192.168.5.62</li>
+    </ul>
+  </div>
+    <!-- Results Section -->
+    <div class="project-details">
+      <h3>Results</h3>
+      <p>The lab was successfully completed:</p>
+      <ul>
+        <li>Devices in different VLANs could communicate via the Layer 3 switch using SVIs for routing.</li>
+        <li>Ping from PC0 (VLAN 10, 192.168.5.1 on Switch0) to PC4 (VLAN 30, 192.168.5.129 on Multilayer Switch0) succeeded with 100% packet delivery, as shown below.</li>
+        <li>VLAN segmentation isolated broadcast traffic, improving network performance.</li>
+        <li>64 addresses (192.168.5.192 - 192.168.5.255) remain for future expansion.</li>
+      </ul>
+      <img src="images/l3switch-ping.png" alt="Ping from PC0 to PC4" class="project-image">
+      <br>
+      <p><strong>Figure:</strong> Successful ping from PC0 (VLAN 10, 192.168.5.1 on Switch0) to PC4 (VLAN 30, 192.168.5.129 on Multilayer Switch0), verifying inter-VLAN connectivity via Layer 3 switch.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

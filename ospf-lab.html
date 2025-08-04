@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - OSPF Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>OSPF Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of Open Shortest Path First (OSPF), a link-state routing protocol that uses the Dijkstra algorithm to calculate the shortest path tree. OSPF supports hierarchical design, fast convergence, and dynamic routing updates. The lab features four routers with GigabitEthernet and FastEthernet links, connected to two LANs via switches, and an external ISP router for internet access. The focus is on OSPF’s ability to prioritize faster links, propagate a default route, and maintain neighbor relationships.</p>
+      <p><strong>What is OSPF?</strong> OSPF advertises link-state information to build a complete topology database, calculates the shortest path based on cost (inversely proportional to bandwidth), and supports areas for scalability. Key features include support for VLSM, route summarization, and the ability to handle complex networks with multiple paths.</p>
+      <p>In this lab, the OSPF reference bandwidth was adjusted to 10,000 Mbps using the <code>auto-cost reference-bandwidth 10000</code> command, ensuring that GigabitEthernet links (cost 10) are preferred over FastEthernet links (cost 100) for routing decisions, aligning with the mixed link speeds in the topology.</p>
+      <p>The lab verifies OSPF’s dynamic routing, shortest path selection (favoring GigabitEthernet), and default route propagation from Router0 to other routers.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router0, Router1, Router2, Router3 - Cisco 2911.</li>
+            <li>Switch0, Switch1 - Cisco 2950.</li>
+            <li>PC0 (connected to Switch0), PC1 (connected to Switch1).</li>
+            <li>ISP (External router, not participating in OSPF).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Router0 S4/0 to ISP S0/0/1 (serial, next hop only).</li>
+            <li>Router0 G2/0 to Router1 G2/0 (GigabitEthernet).</li>
+            <li>Router0 F0/0 to Router2 F0/0 (FastEthernet).</li>
+            <li>Router1 F0/0 to Router3 F0/0 (FastEthernet).</li>
+            <li>Router2 F1/0 to Router3 F2/0 (FastEthernet).</li>
+            <li>Router1 F1/0 to Switch0 F0/1 (FastEthernet).</li>
+            <li>Router2 G2/0 to Switch1 F0/1 (GigabitEthernet).</li>
+            <li>Switch0 F0/2 to PC0, Switch1 F0/2 to PC1.</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>Router0 S4/0 to ISP S0/0/1: 192.168.0.0/30 (Router0: 192.168.0.1, ISP: 192.168.0.2).</li>
+            <li>Router0 G2/0 to Router1 G2/0: 192.168.1.0/30 (Router0: 192.168.1.1, Router1: 192.168.1.2).</li>
+            <li>Router0 F0/0 to Router2 F0/0: 192.168.2.0/30 (Router0: 192.168.2.1, Router2: 192.168.2.2).</li>
+            <li>Router1 F0/0 to Router3 F0/0: 192.168.3.0/30 (Router1: 192.168.3.1, Router3: 192.168.3.2).</li>
+            <li>Router2 F1/0 to Router3 F2/0: 192.168.4.0/30 (Router2: 192.168.4.1, Router3: 192.168.4.2).</li>
+            <li>Router1 F1/0 to Switch0 F0/1: 192.168.5.0/24 (Router1: 192.168.5.1).</li>
+            <li>Router2 G2/0 to Switch1 F0/1: 192.168.6.0/24 (Router2: 192.168.6.1).</li>
+            <li>Switch0 F0/2 to PC0: 192.168.5.0/24 (PC0: 192.168.5.2, Gateway: 192.168.5.1).</li>
+            <li>Switch1 F0/2 to PC1: 192.168.6.0/24 (PC1: 192.168.6.2, Gateway: 192.168.6.1).</li>
+            <li>Loopback0: Router0: 10.0.0.1/32, Router1: 10.0.1.1/32, Router2: 10.0.2.1/32, Router3: 10.0.3.1/32.</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/ospf-topology.png" alt="OSPF Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>Router0</h4>
+      <pre>
+router ospf 1
+ router-id 10.0.0.1
+ auto-cost reference-bandwidth 10000
+ passive-interface Loopback0
+ network 192.168.1.0 0.0.0.3 area 0
+ network 192.168.2.0 0.0.0.3 area 0
+ network 10.0.0.1 0.0.0.0 area 0
+ default-information originate
+exit
+interface Loopback0
+ ip address 10.0.0.1 255.255.255.255
+ no shutdown
+exit
+interface S4/0
+ ip address 192.168.0.1 255.255.255.252
+ no shutdown
+exit
+interface G2/0
+ ip address 192.168.1.1 255.255.255.252
+ no shutdown
+exit
+interface F0/0
+ ip address 192.168.2.1 255.255.255.252
+ no shutdown
+exit
+ip route 0.0.0.0 0.0.0.0 192.168.0.2
+      </pre>
+
+      <h4>Router1</h4>
+      <pre>
+router ospf 1
+ router-id 10.0.1.1
+ auto-cost reference-bandwidth 10000
+ passive-interface Loopback0
+ passive-interface F1/0
+ network 192.168.1.0 0.0.0.3 area 0
+ network 192.168.3.0 0.0.0.3 area 0
+ network 192.168.5.0 0.0.0.255 area 0
+ network 10.0.1.1 0.0.0.0 area 0
+exit
+interface Loopback0
+ ip address 10.0.1.1 255.255.255.255
+ no shutdown
+exit
+interface G2/0
+ ip address 192.168.1.2 255.255.255.252
+ no shutdown
+exit
+interface F0/0
+ ip address 192.168.3.1 255.255.255.252
+ no shutdown
+exit
+interface F1/0
+ ip address 192.168.5.1 255.255.255.0
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router2</h4>
+      <pre>
+router ospf 1
+ router-id 10.0.2.1
+ auto-cost reference-bandwidth 10000
+ passive-interface Loopback0
+ passive-interface G2/0
+ network 192.168.2.0 0.0.0.3 area 0
+ network 192.168.4.0 0.0.0.3 area 0
+ network 192.168.6.0 0.0.0.255 area 0
+ network 10.0.2.1 0.0.0.0 area 0
+exit
+interface Loopback0
+ ip address 10.0.2.1 255.255.255.255
+ no shutdown
+exit
+interface F0/0
+ ip address 192.168.2.2 255.255.255.252
+ no shutdown
+exit
+interface F1/0
+ ip address 192.168.4.1 255.255.255.252
+ no shutdown
+exit
+interface G2/0
+ ip address 192.168.6.1 255.255.255.0
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router3</h4>
+      <pre>
+router ospf 1
+ router-id 10.0.3.1
+ auto-cost reference-bandwidth 10000
+ passive-interface Loopback0
+ network 192.168.3.0 0.0.0.3 area 0
+ network 192.168.4.0 0.0.0.3 area 0
+ network 10.0.3.1 0.0.0.0 area 0
+exit
+interface Loopback0
+ ip address 10.0.3.1 255.255.255.255
+ no shutdown
+exit
+interface F0/0
+ ip address 192.168.3.2 255.255.255.252
+ no shutdown
+exit
+interface F2/0
+ ip address 192.168.4.2 255.255.255.252
+ no shutdown
+exit
+      </pre>
+
+      <h4>ISP (Minimal Configuration)</h4>
+      <pre>
+interface S0/0/1
+ ip address 192.168.0.2 255.255.255.252
+ no shutdown
+exit
+      </pre>
+
+      <h4>PC0</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.5.2 255.255.255.0
+ default-gateway 192.168.5.1
+exit
+      </pre>
+
+      <h4>PC1</h4>
+      <pre>
+interface Fa0
+ ip address 192.168.6.2 255.255.255.0
+ default-gateway 192.168.6.1
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>OSPF Verification</h3>
+      <p>The OSPF neighbor table on Router0 shows active neighbors (Router1 and Router2), confirming successful adjacency. The routing table displays OSPF-learned routes (marked with "O"), including all LANs, inter-router links, loopbacks, and the default route propagated from Router0. With the adjusted reference bandwidth, Router3 prefers the path to Router0 via Router1 (GigabitEthernet link, cost 10) over Router2 (FastEthernet link, cost 100).</p>
+      <p><strong>Note on Cost Calculation:</strong> OSPF calculates the cost as the cumulative path cost from the local router to the destination, using the formula Cost = Reference Bandwidth (10,000 Mbps) / Interface Bandwidth (in Mbps). For example, GigabitEthernet links have a cost of 10, and FastEthernet links have a cost of 100. The total cost includes the local interface cost plus the cost advertised by the next-hop router, with an additional intra-area base cost (typically 10) added for routes within the same area. This results in observed costs like 110 (e.g., 10 + 100) and 200 (e.g., 100 + 100), reflecting the shortest paths through the mixed-speed topology.</p>
+      <img src="images/ospf-neighbors.png" alt="OSPF Neighbors" class="project-image">
+      <img src="images/ospf-route-table.png" alt="OSPF Routing Table" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 (192.168.5.2) to PC1 (192.168.6.2) and Router3 Loopback0 (10.0.3.1) verifies that OSPF is routing traffic correctly, with the shortest path via the GigabitEthernet link between Router0 and Router1.</p>
+      <img src="images/ospf-ping.png" alt="OSPF Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

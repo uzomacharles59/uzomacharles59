@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - EIGRP Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>EIGRP Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of Enhanced Interior Gateway Routing Protocol (EIGRP), an advanced distance-vector routing protocol developed by Cisco. EIGRP uses the Diffusing Update Algorithm (DUAL) for loop-free routing and supports features like fast convergence, unequal-cost load balancing, and VLSM. The lab features four routers in a ring topology, each with a LAN and a loopback interface, showcasing EIGRP’s neighbor relationships and route selection based on composite metrics (bandwidth and delay).</p>
+      <p><strong>What is EIGRP?</strong> EIGRP advertises routes using a reliable update mechanism, maintains a topology table, and selects the best path based on a composite metric. It operates within an autonomous system (AS) and supports both IPv4 and IPv6. Key features include automatic summarization (disabled here with `no auto-summary`) and the ability to handle complex topologies.</p>
+      <p>The lab verifies EIGRP’s ability to establish neighbor relationships, propagate routes, and ensure connectivity across the network.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router0 (HQ), Router1 (Branch 1), Router2 (Branch 2), Router3 (Remote) - Cisco 2911.</li>
+            <li>Switch0 (HQ LAN), Switch1 (Branch 1 LAN), Switch2 (Branch 2 LAN), Switch3 (Remote LAN) - Cisco 2950.</li>
+            <li>PC0 (HQ), PC1 (Branch 1), PC2 (Branch 2), PC3 (Remote).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Router0 G0/0 to Switch0 F0/1 (HQ LAN).</li>
+            <li>Router1 G0/0 to Switch1 F0/1 (Branch 1 LAN).</li>
+            <li>Router2 G0/0 to Switch2 F0/1 (Branch 2 LAN).</li>
+            <li>Router3 G0/0 to Switch3 F0/1 (Remote LAN).</li>
+            <li>Router0 S0/0/0 to Router1 S0/0/0 (serial).</li>
+            <li>Router1 S0/0/1 to Router2 S0/0/0 (serial).</li>
+            <li>Router2 S0/0/1 to Router3 S0/0/0 (serial).</li>
+            <li>Router3 S0/0/1 to Router0 S0/0/1 (serial).</li>
+            <li>Switch0 F0/2 to PC0, Switch1 F0/2 to PC1, Switch2 F0/2 to PC2, Switch3 F0/2 to PC3.</li>
+          </ul>
+        </li>
+        <li><strong>VLANs</strong>: VLAN 10 (HQ), VLAN 20 (Branch 1), VLAN 30 (Branch 2), VLAN 40 (Remote).</li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10: 192.168.1.0/24 (PC0: 192.168.1.2, Router0 G0/0: 192.168.1.254).</li>
+            <li>VLAN 20: 192.168.2.0/24 (PC1: 192.168.2.2, Router1 G0/0: 192.168.2.254).</li>
+            <li>VLAN 30: 192.168.3.0/24 (PC2: 192.168.3.2, Router2 G0/0: 192.168.3.254).</li>
+            <li>VLAN 40: 192.168.4.0/24 (PC3: 192.168.4.2, Router3 G0/0: 192.168.4.254).</li>
+            <li>Router0-Router1: 192.168.12.0/30 (R0: 192.168.12.1, R1: 192.168.12.2).</li>
+            <li>Router1-Router2: 192.168.23.0/30 (R1: 192.168.23.1, R2: 192.168.23.2).</li>
+            <li>Router2-Router3: 192.168.34.0/30 (R2: 192.168.34.1, R3: 192.168.34.2).</li>
+            <li>Router3-Router0: 192.168.13.0/30 (R3: 192.168.13.1, R0: 192.168.13.2).</li>
+            <li>Loopback0: R0: 192.168.10.1/32, R1: 192.168.20.1/32, R2: 192.168.30.1/32, R3: 192.168.40.1/32.</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/eigrp-topology.png" alt="EIGRP Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>Router0 (HQ)</h4>
+      <pre>
+router eigrp 100
+ network 192.168.1.0 0.0.0.255
+ network 192.168.12.0 0.0.0.3
+ network 192.168.13.0 0.0.0.3
+ network 192.168.10.0 0.0.0.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.1.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.12.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.13.2 255.255.255.252
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.10.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router1 (Branch 1)</h4>
+      <pre>
+router eigrp 100
+ network 192.168.2.0 0.0.0.255
+ network 192.168.12.0 0.0.0.3
+ network 192.168.23.0 0.0.0.3
+ network 192.168.20.0 0.0.0.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.2.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.12.2 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.23.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.20.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router2 (Branch 2)</h4>
+      <pre>
+router eigrp 100
+ network 192.168.3.0 0.0.0.255
+ network 192.168.23.0 0.0.0.3
+ network 192.168.34.0 0.0.0.3
+ network 192.168.30.0 0.0.0.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.3.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.23.2 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.34.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.30.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router3 (Remote)</h4>
+      <pre>
+router eigrp 100
+ network 192.168.4.0 0.0.0.255
+ network 192.168.34.0 0.0.0.3
+ network 192.168.13.0 0.0.0.3
+ network 192.168.40.0 0.0.0.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.4.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.34.2 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.13.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.40.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Switches (Basic VLAN Setup)</h4>
+      <pre>
+# Switch0
+configure terminal
+vlan 10
+ name HQ_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 10
+exit
+
+# Switch1
+configure terminal
+vlan 20
+ name Branch1_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 20
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+exit
+
+# Switch2
+configure terminal
+vlan 30
+ name Branch2_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 30
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 30
+exit
+
+# Switch3
+configure terminal
+vlan 40
+ name Remote_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 40
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 40
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>EIGRP Verification</h3>
+      <p>The EIGRP neighbor table on Router0 shows active neighbors (Router1 and Router3), confirming successful adjacency. The routing table displays EIGRP-learned routes (marked with "D"), including all LANs, serial links, and loopbacks.</p>
+      <img src="images/eigrp-neighbors.png" alt="EIGRP Neighbors" class="project-image">
+      <img src="images/eigrp-route-table.png" alt="EIGRP Routing Table" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 (192.168.1.2) to PC3 (192.168.4.2) and Router3 Loopback0 (192.168.40.1) verifies that EIGRP is routing traffic correctly across the network.</p>
+      <img src="images/eigrp-ping.png" alt="EIGRP Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

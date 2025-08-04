@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - RIP Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>RIP Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates the configuration and operation of the Routing Information Protocol version 2 (RIPv2), a distance-vector routing protocol, in a multi-router network. RIPv2 uses hop count as its metric and is ideal for small to medium-sized networks. The lab features three routers connected via serial links, each with a LAN and a loopback interface, showcasing dynamic routing and convergence.</p>
+      <p><strong>What is RIP?</strong> RIP is a simple protocol that advertises routes every 30 seconds, with a maximum hop count of 15. RIPv2 improves upon RIPv1 by supporting VLSM and including subnet mask information in updates. Key features include automatic summarization (disabled here with `no auto-summary`) and multicast updates (224.0.0.9).</p>
+      <p>The lab verifies RIP’s ability to learn and propagate routes across the network, ensuring connectivity between all devices and loopback interfaces.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Router0 (HQ), Router1 (Branch 1), Router2 (Branch 2) - Cisco 2911.</li>
+            <li>Switch0 (HQ LAN), Switch1 (Branch 1 LAN), Switch2 (Branch 2 LAN) - Cisco 2950.</li>
+            <li>PC0 (HQ), PC1 (Branch 1), PC2 (Branch 2).</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Router0 G0/0 to Switch0 F0/1 (HQ LAN).</li>
+            <li>Router1 G0/0 to Switch1 F0/1 (Branch 1 LAN).</li>
+            <li>Router2 G0/0 to Switch2 F0/1 (Branch 2 LAN).</li>
+            <li>Router0 S0/0/0 to Router1 S0/0/0 (serial).</li>
+            <li>Router1 S0/0/1 to Router2 S0/0/1 (serial).</li>
+            <li>Router2 S0/0/0 to Router0 S0/0/1 (serial).</li>
+            <li>Switch0 F0/2 to PC0, Switch1 F0/2 to PC1, Switch2 F0/2 to PC2.</li>
+          </ul>
+        </li>
+        <li><strong>VLANs</strong>: VLAN 10 (HQ), VLAN 20 (Branch 1), VLAN 30 (Branch 2).</li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10: 192.168.1.0/24 (PC0: 192.168.1.2, Router0 G0/0: 192.168.1.254).</li>
+            <li>VLAN 20: 192.168.2.0/24 (PC1: 192.168.2.2, Router1 G0/0: 192.168.2.254).</li>
+            <li>VLAN 30: 192.168.3.0/24 (PC2: 192.168.3.2, Router2 G0/0: 192.168.3.254).</li>
+            <li>Router0-Router1: 192.168.12.0/30 (R0: 192.168.12.1, R1: 192.168.12.2).</li>
+            <li>Router1-Router2: 192.168.23.0/30 (R1: 192.168.23.1, R2: 192.168.23.2).</li>
+            <li>Router2-Router0: 192.168.13.0/30 (R2: 192.168.13.1, R0: 192.168.13.2).</li>
+            <li>Loopback0: R0: 192.168.10.1/32, R1: 192.168.20.1/32, R2: 192.168.30.1/32.</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/rip-topology.png" alt="RIP Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>Router0 (HQ)</h4>
+      <pre>
+router rip
+ version 2
+ network 192.168.1.0
+ network 192.168.12.0
+ network 192.168.13.0
+ network 192.168.10.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.1.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.12.1 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.13.2 255.255.255.252
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.10.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router1 (Branch 1)</h4>
+      <pre>
+router rip
+ version 2
+ network 192.168.2.0
+ network 192.168.12.0
+ network 192.168.23.0
+ network 192.168.20.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.2.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.12.2 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.23.1 255.255.255.252
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.20.1 255.255.255.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Router2 (Branch 2)</h4>
+      <pre>
+router rip
+ version 2
+ network 192.168.3.0
+ network 192.168.23.0
+ network 192.168.13.0
+ network 192.168.30.0
+ no auto-summary
+exit
+interface GigabitEthernet0/0
+ ip address 192.168.3.254 255.255.255.0
+ no shutdown
+exit
+interface Serial0/0/0
+ ip address 192.168.13.1 255.255.255.252
+ no shutdown
+exit
+interface Serial0/0/1
+ ip address 192.168.23.2 255.255.255.252
+ no shutdown
+exit
+interface Loopback0
+ ip address 192.168.30.1 255.168.1.255
+ no shutdown
+exit
+      </pre>
+
+      <h4>Switches (Basic VLAN Setup)</h4>
+      <pre>
+# Switch0
+configure terminal
+vlan 10
+ name HQ_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 10
+exit
+
+# Switch1
+configure terminal
+vlan 20
+ name Branch1_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 20
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+exit
+
+# Switch2
+configure terminal
+vlan 30
+ name Branch2_LAN
+exit
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 30
+exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 30
+exit
+      </pre>
+    </div>
+
+    <div class="project-details">
+      <h3>RIP Verification</h3>
+      <p>The routing table on Router0 shows all RIP-learned routes (marked with "R"), including networks from Router1 and Router2. The `show ip protocols` command confirms RIPv2 is active with the specified networks advertised.</p>
+      <img src="images/rip-route-table.png" alt="RIP Routing Table" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>A successful ping from PC0 (192.168.1.2) to PC1 (192.168.2.2), PC0 (192.168.1.2) to PC2 (192.168.3.2) and Router1 Loopback0 (192.168.20.1) verifies that RIP is routing traffic correctly across the network.</p>
+      <img src="images/rip-ping.png" alt="RIP Ping Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
