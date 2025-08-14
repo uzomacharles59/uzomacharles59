@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHARLES UZOMA - DHCP Snooping, DAI, and Port Security Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <nav class="sticky-nav">
+    <a href="index.html" class="logo">CU</a>
+    <div class="hamburger">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#skills">Skills</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="certifications.html">Certifications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="theme-toggle">
+      <i class="fas fa-moon"></i>
+    </div>
+  </nav>
+
+  <section class="content-section">
+    <h2>DHCP Snooping, DAI, and Port Security Lab</h2>
+    <div class="project-details">
+      <h3>Overview</h3>
+      <p>This lab demonstrates Layer 2 security features—DHCP Snooping, Dynamic ARP Inspection (DAI), and Port Security—using a Cisco 3560 Layer-3 switch and two Cisco 2960 access switches. The setup includes a legitimate DHCP server in VLAN 30 and four PCs across VLANs 10 and 20, with a management VLAN 99.</p>
+      <p><strong>Objective:</strong> Prevent rogue DHCP servers, ARP spoofing, and unauthorized access by configuring DHCP Snooping to filter DHCP traffic, DAI to validate ARP packets, and Port Security to restrict MAC addresses on access ports.</p>
+      <p>The lab showcases a secure internal network with inter-VLAN routing handled by the Core L3 switch, ensuring only trusted devices can operate.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Topology</h3>
+      <ul>
+        <li><strong>Devices</strong>:
+          <ul>
+            <li>Core (3560) - Cisco 3560 Layer-3 switch.</li>
+            <li>ASW1, ASW2 - Cisco 2960 Access switches.</li>
+            <li>DHCP Server - PT "Server" device.</li>
+            <li>PC0, PC1, PC2, PC3 - End hosts.</li>
+          </ul>
+        </li>
+        <li><strong>Connections</strong>:
+          <ul>
+            <li>Core Gi0/1 ↔ ASW1 Gi0/1 (trunk, all VLANs).</li>
+            <li>Core Gi0/2 ↔ ASW2 Gi0/2 (trunk, all VLANs).</li>
+            <li>ASW1 F0/1 ↔ ASW2 F0/1 (trunk, all VLANs).</li>
+            <li>DHCP Server Fa0 ↔ Core Fa0/1 (access VLAN 30).</li>
+            <li>PC0 ↔ ASW1 Fa0/2 (access VLAN 10).</li>
+            <li>PC1 ↔ ASW1 Fa0/3 (access VLAN 20).</li>
+            <li>PC2 ↔ ASW2 Fa0/2 (access VLAN 10).</li>
+            <li>PC3 ↔ ASW2 Fa0/3 (access VLAN 20).</li>
+          </ul>
+        </li>
+        <li><strong>IP Addressing</strong>:
+          <ul>
+            <li>VLAN 10 (Users1): 10.10.10.0/24, GW: 10.10.10.1 (Core SVI).</li>
+            <li>VLAN 20 (Users2): 10.10.20.0/24, GW: 10.10.20.1 (Core SVI).</li>
+            <li>VLAN 30 (Servers): 10.10.30.0/24, GW: 10.10.30.1 (Core SVI), DHCP Server: 10.10.30.10.</li>
+            <li>VLAN 99 (Management): 10.10.99.0/24, GW: 10.10.99.1 (Core SVI), ASW1: 10.10.99.2, ASW2: 10.10.99.3.</li>
+          </ul>
+        </li>
+      </ul>
+      <img src="images/dhcp-snooping-dai-port-security-topology.png" alt="DHCP Snooping, DAI, Port Security Topology" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Configurations</h3>
+      <h4>Core (3560)</h4>
+      <pre>
+vlan 10
+ name Users1
+exit
+vlan 20
+ name Users2
+exit
+vlan 30
+ name Servers
+exit
+vlan 99
+ name Management
+exit
+interface vlan 10
+ ip address 10.10.10.1 255.255.255.0
+ ip helper-address 10.10.30.10
+ no shutdown
+exit
+interface vlan 20
+ ip address 10.10.20.1 255.255.255.0
+ ip helper-address 10.10.30.10
+ no shutdown
+exit
+interface vlan 30
+ ip address 10.10.30.1 255.255.255.0
+ no shutdown
+exit
+interface vlan 99
+ ip address 10.10.99.1 255.255.255.0
+ no shutdown
+exit
+interface range gi0/1 - 2
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ no shutdown
+exit
+interface fa0/1
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+exit
+ip routing
+      </pre>
+
+      <h4>ASW1 (2960)</h4>
+      <pre>
+vlan 10
+ name Users1
+exit
+vlan 20
+ name Users2
+exit
+vlan 30
+ name Servers
+exit
+vlan 99
+ name Management
+exit
+interface vlan 99
+ ip address 10.10.99.2 255.255.255.0
+ no shutdown
+exit
+interface range fa0/2 - 3
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation shutdown
+ switchport port-security mac-address sticky
+ no shutdown
+exit
+interface fa0/2
+ switchport access vlan 10
+exit
+interface fa0/3
+ switchport access vlan 20
+exit
+interface fa0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ no shutdown
+exit
+interface gi0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ no shutdown
+exit
+ip dhcp snooping
+ip dhcp snooping vlan 10,20
+no ip dhcp snooping information option
+interface gi0/1
+ ip dhcp snooping trust
+exit
+ip arp inspection vlan 10,20
+interface range fa0/2 - 3
+ ip arp inspection limit rate 100
+exit
+      </pre>
+
+      <h4>ASW2 (2960)</h4>
+      <pre>
+vlan 10
+ name Users1
+exit
+vlan 20
+ name Users2
+exit
+vlan 30
+ name Servers
+exit
+vlan 99
+ name Management
+exit
+interface vlan 99
+ ip address 10.10.99.3 255.255.255.0
+ no shutdown
+exit
+interface range fa0/2 - 3
+ switchport mode access
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation shutdown
+ switchport port-security mac-address sticky
+ no shutdown
+exit
+interface fa0/2
+ switchport access vlan 10
+exit
+interface fa0/3
+ switchport access vlan 20
+exit
+interface fa0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ no shutdown
+exit
+interface gi0/2
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ no shutdown
+exit
+ip dhcp snooping
+ip dhcp snooping vlan 10,20
+no ip dhcp snooping information option
+interface gi0/2
+ ip dhcp snooping trust
+exit
+ip arp inspection vlan 10,20
+interface range fa0/2 - 3
+ ip arp inspection limit rate 100
+exit
+      </pre>
+
+      <h4>DHCP Server</h4>
+      <pre>
+interface Fa0
+ ip address 10.10.30.10 255.255.255.0
+ default-gateway 10.10.30.1
+exit
+ip dhcp pool VLAN10
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.1
+ range 10.10.10.100 10.10.10.254
+exit
+ip dhcp pool VLAN20
+ network 10.10.20.0 255.255.255.0
+ default-router 10.10.20.1
+ range 10.10.20.100 10.10.20.254
+exit
+      </pre>
+
+      <h4>PCs</h4>
+      <p>PCs configured to obtain IP addresses automatically via DHCP.</p>
+    </div>
+
+    <div class="project-details">
+      <h3>Verification</h3>
+      <p>Verify DHCP Snooping bindings with <code>show ip dhcp snooping binding</code> on ASW1 and ASW2 to ensure only trusted DHCP assignments are recorded after PCs request IPs. Check DAI statistics with <code>show ip arp inspection statistics</code> to confirm ARP packet validation after testing with a spoofed ARP packet. Verify Port Security status with <code>show port-security</code> to confirm MAC address restrictions after triggering a violation.</p>
+      <img src="images/dhcp-snooping-bindings.png" alt="DHCP Snooping Bindings" class="project-image">
+      <!-- <img src="images/dai-statistics.png" alt="DAI Statistics" class="project-image"> -->
+      <img src="images/port-security-status.png" alt="Port Security Status" class="project-image">
+    </div>
+
+    <div class="project-details">
+      <h3>Connectivity Test</h3>
+      <p>Test connectivity by pinging between PCs in VLAN 10 (PC0, PC2) and VLAN 20 (PC1, PC3) via the Core L3 switch. Verify all PCs receive IPs from the DHCP server (e.g., PC0: 10.10.10.100+, PC1: 10.10.20.100+). Trigger a Port Security violation by connecting a switch to ASW1 Fa0/2 with PC0 and at least one additional device, then revert by removing the switch and issuing <code>shutdown</code> and <code>no shutdown</code> on Fa0/2 (note: if the port goes down again, clear sticky MACs with <code>clear port-security sticky </code> and retest). </p>
+      <img src="images/connectivity-test.png" alt="Connectivity Test" class="project-image">
+      <br>
+      <p> Trigger a Port Security violation by connecting a switch to ASW1 Fa0/2 with PC0 and at least one additional device, then revert by removing the switch and issuing <code>shutdown</code> and <code>no shutdown</code> on Fa0/2 (note: if the port goes down again, clear sticky MACs with <code>clear port-security sticky </code> and retest). </p>
+        <br>
+        <p>Port-Security trigger setup.</p>
+      <img src="images/port-security-setup.png" alt="Connectivity Test" class="project-image">
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CHARLES UZOMA | Crafting Tomorrow’s Networks</p>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
